@@ -1,13 +1,13 @@
 {
   "name": "com.kunagisatomo.luaapi",
   "version": "1.0.0",
-  "displayName": "Lua API For Unity",
-  "description": "Only Lua API",
+  "displayName": "LuaAPI",
+  "description": "Simple Lua API.",
   "keywords": [
     "lua"
   ],
   "author": {
-    "name": "零",
+    "name": "\u96f6",
     "email": "kunagisatomo@live.com"
   }
 }
