@@ -1,2 +1,2 @@
 # LuaForUnity
-Just Lua API for Unity.
+Simple Lua API for Unity，No Lua Bind.
