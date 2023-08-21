@@ -831,6 +831,16 @@ namespace Lua
             return luaL_unref(state, LuaConst.LUA_REGISTRYINDEX, @ref);
         }
 
+        public static void luaL_getref(IntPtr state, int t, int @ref)
+        {
+            lua_rawgeti(state, t, @ref);
+        }
+
+        public static void luaL_getref(IntPtr state, int @ref)
+        {
+            lua_rawgeti(state, LuaConst.LUA_REGISTRYINDEX, @ref);
+        }
+
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern LuaStatus luaL_loadfilex(IntPtr state, string filename, string mode);
 
