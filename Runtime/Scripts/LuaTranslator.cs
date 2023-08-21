@@ -25,7 +25,7 @@ namespace Lua
             unchecked
             {
                 var number = LuaAPI.lua_tointeger(state, idx);
-#if LUA_TRANSLATOR_NUMBER_CHECK
+#if LUA_NUMBER_CHECK
                 if (number < int.MinValue || number > int.MaxValue)
                 {
                     value = 0;
@@ -68,7 +68,7 @@ namespace Lua
             unchecked
             {
                 var number = LuaAPI.lua_tonumber(state, idx);
-#if LUA_TRANSLATOR_NUMBER_CHECK
+#if LUA_NUMBER_CHECK
                 if (number < float.MinValue || number > float.MaxValue)
                 {
                     value = 0;

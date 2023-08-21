@@ -13,7 +13,7 @@
         {
             "name": "com.kunagisatomo.luaapi",
             "expression": "",
-            "define": "LUA_TRANSLATOR_NUMBER_CHECK"
+            "define": "LUA_NUMBER_CHECK"
         },
         {
             "name": "com.kunagisatomo.luaapi",
