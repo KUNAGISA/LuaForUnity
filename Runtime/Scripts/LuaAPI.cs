@@ -130,6 +130,8 @@ namespace Lua
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct LuaLReg
     {
+        public static LuaLReg Null = new LuaLReg(null, null);
+
         public readonly string name;
         public readonly LuaCSFunction func;
 
@@ -412,23 +414,8 @@ namespace Lua
             lua_pushlstring(state, bytes, bytes.Length);
         }
 
-#if NATIVE_LUA_PUSHSTRING
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void lua_pushstring(IntPtr state, [MarshalAs(UnmanagedType.LPStr)] string str);
-#else
-        public static void lua_pushstring(IntPtr state, string str)
-        {
-            if (str == null)
-            {
-                lua_pushnil(state);
-            }
-            else
-            {
-                byte[] bytes = Encoding.UTF8.GetBytes(str);
-                lua_pushlstring(state, bytes, bytes.Length);
-            }
-        }
-#endif
+        public static extern void lua_pushstring(IntPtr state, string str);
 
         public static void lua_pushglobaltable(IntPtr state)
         {
@@ -719,11 +706,11 @@ namespace Lua
         #region lauxlib.h
 
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
-        public static extern LuaTypes luaL_checkversion_(IntPtr state, int ver, int sz);
+        public static extern void luaL_checkversion_(IntPtr state, double ver, int sz);
 
-        public static void luaL_checkVersion(IntPtr L)
+        public static void luaL_checkversion(IntPtr state)
         {
-            luaL_checkversion_(L, LuaConst.LUA_VERSION_NUM, sizeof(long) * 16 + sizeof(double));
+            luaL_checkversion_(state, LuaConst.LUA_VERSION_NUM, sizeof(long) * 16 + sizeof(double));
         }
 
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
@@ -899,7 +886,7 @@ namespace Lua
 
         public static void luaL_newlib(IntPtr state, LuaLReg[] l)
         {
-            luaL_checkVersion(state);
+            luaL_checkversion(state);
             luaL_newlibtable(state, l);
             luaL_setfuncs(state, l, 0);
         }

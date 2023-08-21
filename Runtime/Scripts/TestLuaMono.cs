@@ -8,21 +8,22 @@ namespace Lua
     {
         private IntPtr m_state;
 
-        private static LuaLReg[] registers = new LuaLReg[]
+        private static readonly LuaLReg[] registers = new LuaLReg[]
         {
-            new LuaLReg("print", Print),
-            new LuaLReg(null, null),
+            new LuaLReg("啊啊啊", Print),
+            LuaLReg.Null,
         };
-
-        private static string dostring = "test.print(\"aaaaaaaaaaaaaaa\")";
 
         private void Awake()
         {
+            //RunConsole();
             m_state = LuaAPI.luaL_newstate();
             try
             {
-                LuaAPI.luaL_requiref(m_state, "package", LuaAPI.luaopen_package, 1);
-                LuaAPI.lua_pop(m_state, 1);
+                LuaAPI.luaL_newlib(m_state, registers);
+                LuaAPI.lua_setglobal(m_state, "test");
+
+                LuaAPI.luaL_openlibs(m_state);
 
                 LuaAPI.lua_getglobal(m_state, "package");
                 LuaAPI.lua_getfield(m_state, -1, "searchers");
@@ -31,6 +32,15 @@ namespace Lua
                 LuaAPI.lua_pushcfunction(m_state, Print);
                 LuaAPI.lua_setglobal(m_state, "print");
 
+                LuaAPI.lua_pushstring(m_state, "啊啊啊");
+                LuaAPI.lua_setglobal(m_state, "test_string");
+
+                LuaAPI.lua_pushcfunction(m_state, TestFunction);
+                LuaAPI.lua_setglobal(m_state, "test_func");
+
+                GC.Collect();
+                GC.Collect();
+
                 var len = LuaAPI.luaL_len(m_state, -1);
                 LuaAPI.lua_pushcfunction(m_state, Loader);
                 LuaAPI.lua_rawseti(m_state, -2, len + 1);
@@ -38,13 +48,18 @@ namespace Lua
 
                 if (LuaAPI.luaL_dofile(m_state, UnityEngine.Application.streamingAssetsPath + "/" + "test.lua") != LuaStatus.LUA_OK)
                 {
-                    Debug.Log(LuaAPI.lua_tostring(m_state, -1));
+                    Debug.LogError(LuaAPI.lua_tostring(m_state, -1));
                 }
             }
             finally
             {
                 LuaAPI.lua_close(m_state);
             }
+        }
+
+        private int TestFunction(IntPtr state)
+        {
+            return Print(state);
         }
 
         private static int Print(IntPtr state)
