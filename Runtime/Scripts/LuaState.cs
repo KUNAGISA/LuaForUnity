@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Lua
@@ -42,17 +41,29 @@ namespace Lua
     {
         //TODO：More Extension Function
 
-        public static IEnumerable Pair(this ILuaState state, int idx)
+        /// <see cref="LuaUtility.Pair(IntPtr, int)"/>
+        public static IEnumerable<ValueTuple<int, int>> Pair(this ILuaState state, int idx)
         {
             return LuaUtility.Pair(state.L, idx);
         }
 
-        public static IEnumerable<int> IPair(this ILuaState state, int idx)
+        /// <see cref="LuaUtility.IPair(IntPtr, int)"/>
+        public static IEnumerable<ValueTuple<int, int>> IPair(this ILuaState state, int idx)
         {
             return LuaUtility.IPair(state.L, idx);
         }
 
 #if LUA_SIMPLE_TRANSLATOR
+        public static IEnumerable<T> Select<T>(this ILuaState state, int idx)
+        {
+            return LuaUtility.Select<T>(state.L, idx);
+        }
+
+        public static IEnumerable<ValueTuple<TKey, TValue>> Select<TKey, TValue>(this ILuaState state, int idx)
+        {
+            return LuaUtility.Select<TKey, TValue>(state.L, idx);
+        }
+
         public static bool TryGetValue<T>(this ILuaState state, int idx, out T value)
         {
             return LuaUtility.TryGetValue(state.L, idx, out value);
@@ -63,19 +74,14 @@ namespace Lua
             return LuaUtility.GetValue<T>(state.L, idx);
         }
 
-        public static IEnumerable<T> GetValues<T>(this ILuaState state, int idx)
+        public static T[] GetArray<T>(this ILuaState state, int idx)
         {
-            return LuaUtility.GetValues<T>(state.L, idx);
+            return LuaUtility.GetArray<T>(state.L, idx);
         }
 
-        public static IEnumerable<ValueTuple<TKey, TValue>> GetValues<TKey, TValue>(this ILuaState state, int idx)
+        public static Dictionary<TKey, TValue> GetTable<TKey, TValue>(this ILuaState state, int idx)
         {
-            return LuaUtility.GetValues<TKey, TValue>(state.L, idx);
-        }
-
-        public static T[] GetArrayValue<T>(this ILuaState state, int idx)
-        {
-            return LuaUtility.GetArrayValue<T>(state.L, idx);
+            return LuaUtility.GetTable<TKey, TValue>(state.L, idx);
         }
 
         public static void PushValue<T>(this ILuaState state, in T value)
@@ -83,24 +89,29 @@ namespace Lua
             LuaUtility.PushValue(state.L, value);
         }
 
-        public static void PushValues<T>(this ILuaState state, T[] values)
+        public static void PushArray<T>(this ILuaState state, T[] values)
         {
-            LuaUtility.PushValues(state.L, values);
+            LuaUtility.PushArray(state.L, values);
         }
 
-        public static void PushValues<T>(this ILuaState state, ICollection<T> values)
+        public static void PushArray<T>(this ILuaState state, ICollection<T> values)
         {
-            LuaUtility.PushValues(state.L, values);
+            LuaUtility.PushArray(state.L, values);
         }
 
-        public static void PushValues<T>(this ILuaState state, IEnumerable<T> values)
+        public static void PushArray<T>(this ILuaState state, IEnumerable<T> values)
         {
-            LuaUtility.PushValues(state.L, values);
+            LuaUtility.PushArray(state.L, values);
         }
 
-        public static void PushValues<TKey, TValue>(this ILuaState state, IDictionary<TKey, TValue> values)
+        public static void PushTable<TKey, TValue>(this ILuaState state, ICollection<KeyValuePair<TKey, TValue>> values)
         {
-            LuaUtility.PushValues(state.L, values);
+            LuaUtility.PushTable(state.L, values);
+        }
+
+        public static void PushTable<TKey, TValue>(this ILuaState state, IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            LuaUtility.PushTable(state.L, values);
         }
 #endif
     }
