@@ -9,17 +9,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.kunagisatomo.luaapi",
-            "expression": "",
-            "define": "LUA_NUMBER_CHECK"
-        },
-        {
-            "name": "com.kunagisatomo.luaapi",
-            "expression": "",
-            "define": "LUA_SIMPLE_TRANSLATOR"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

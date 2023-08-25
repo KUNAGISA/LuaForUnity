@@ -1,4 +1,6 @@
 # LuaForUnity
 `LuaAPI` for `Unity`, with simple `LuaTranslator`.
 
-Remove Macro `LUA_SIMPLE_TRANSLATOR` to disable `LuaTranslator`.
+Add Macro `LUA_SIMPLE_TRANSLATOR` to enable `LuaTranslator`.
+
+Add Macro `LUA_NUMBER_CHECK` to enable check number overflow in `LuaTranslator`.
