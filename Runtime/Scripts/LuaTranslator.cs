@@ -4,154 +4,253 @@ using System;
 
 namespace Lua
 {
-    public interface ILuaTranslator<T>
+    public interface ILuaDecoder<TValue>
     {
-        LuaTypes Type { get; }
-        void PushValue(in IntPtr state, in T value);
-        protected internal bool TryGetValue(in IntPtr state, in int idx, out T value);
+        TValue GetValue(IntPtr state, int index);
+        bool TryGetValue(IntPtr state, int index, out TValue value);
     }
 
-    internal sealed class IntTranslator : ILuaTranslator<int>
+    public interface ILuaEncoder<TValue>
     {
-        public LuaTypes Type => LuaTypes.LUA_TNUMBER;
+        void PushValue(IntPtr state, in TValue value);
+    }
 
-        public void PushValue(in IntPtr state, in int value)
-        {
-            LuaAPI.lua_pushvalue(state, value);
-        }
+    public interface ILuaTranslator<TValue> : ILuaDecoder<TValue>, ILuaEncoder<TValue>
+    {
 
-        bool ILuaTranslator<int>.TryGetValue(in IntPtr state, in int idx, out int value)
+    }
+
+    public abstract class LuaDecoder<TValue> : ILuaDecoder<TValue>
+    {
+        internal protected abstract LuaTypes LuaType { get; }
+
+        TValue ILuaDecoder<TValue>.GetValue(IntPtr state, int index)
         {
-            unchecked
+            if (LuaType != LuaTypes.LUA_TNONE && LuaAPI.lua_type(state, index) != LuaType)
             {
-                var number = LuaAPI.lua_tointeger(state, idx);
-#if LUA_NUMBER_CHECK
-                if (number < int.MinValue || number > int.MaxValue)
-                {
-                    value = 0;
-                    return false;
-                }
-#endif
-                value = (int)number;
-                return true;
+                throw new Exception($"can not decoder to {typeof(TValue)}, need {LuaType}");
             }
-        }
-    }
-
-    internal sealed class LongTranslator : ILuaTranslator<long>
-    {
-        public LuaTypes Type => LuaTypes.LUA_TNUMBER;
-
-        public void PushValue(in IntPtr state, in long value)
-        {
-            LuaAPI.lua_pushinteger(state, value);
+            return GetValue(state, index);
         }
 
-        bool ILuaTranslator<long>.TryGetValue(in IntPtr state, in int idx, out long value)
+        bool ILuaDecoder<TValue>.TryGetValue(IntPtr state, int index, out TValue value)
         {
-            value = LuaAPI.lua_tointeger(state, idx);
-            return true;
-        }
-    }
-
-    internal sealed class FloatTranslator : ILuaTranslator<float>
-    {
-        public LuaTypes Type => LuaTypes.LUA_TNUMBER;
-
-        public void PushValue(in IntPtr state, in float value)
-        {
-            throw new NotImplementedException();
-        }
-
-        bool ILuaTranslator<float>.TryGetValue(in IntPtr state, in int idx, out float value)
-        {
-            unchecked
-            {
-                var number = LuaAPI.lua_tonumber(state, idx);
-#if LUA_NUMBER_CHECK
-                if (number < float.MinValue || number > float.MaxValue)
-                {
-                    value = 0;
-                    return false;
-                }
-#endif
-                value = (float)number;
-                return true;
-            }
-        }
-    }
-
-    internal sealed class DoubleTranslator : ILuaTranslator<double>
-    {
-        public LuaTypes Type => LuaTypes.LUA_TNUMBER;
-
-        public void PushValue(in IntPtr state, in double value)
-        {
-            LuaAPI.lua_pushnumber(state, value);
-        }
-
-        bool ILuaTranslator<double>.TryGetValue(in IntPtr state, in int idx, out double value)
-        {
-            value = LuaAPI.lua_tonumber(state, idx);
-            return true;
-        }
-    }
-
-    internal sealed class BooleanTranslator : ILuaTranslator<bool>
-    {
-        public LuaTypes Type => LuaTypes.LUA_TBOOLEAN;
-
-        public void PushValue(in IntPtr state, in bool value)
-        {
-            LuaAPI.lua_pushboolean(state, value);
-        }
-
-        bool ILuaTranslator<bool>.TryGetValue(in IntPtr state, in int idx, out bool value)
-        {
-            value = LuaAPI.lua_toboolean(state, idx);
-            return true;
-        }
-    }
-
-    internal sealed class StringTranslator : ILuaTranslator<string>
-    {
-        public LuaTypes Type => LuaTypes.LUA_TSTRING;
-
-        public void PushValue(in IntPtr state, in string value)
-        {
-            LuaAPI.lua_pushstring(state, value);
-        }
-
-        bool ILuaTranslator<string>.TryGetValue(in IntPtr state, in int idx, out string value)
-        {
-            value = LuaAPI.lua_tostring(state, idx);
-            return value != null;
-        }
-    }
-
-    public static class LuaTranslatorExtension
-    {
-        public static bool TryGetValueWithType<T>(this ILuaTranslator<T> translator, in IntPtr state, in int idx, out T value)
-        {
-            if (translator.Type != LuaTypes.LUA_TNONE && LuaAPI.lua_type(state, idx) != translator.Type)
+            if (LuaType != LuaTypes.LUA_TNONE && LuaAPI.lua_type(state, index) != LuaType)
             {
                 value = default;
                 return false;
             }
-            return translator.TryGetValue(state, idx, out value);
+            return TryGetValue(state, index, out value);
         }
 
-        public static T GetValueWithType<T>(this ILuaTranslator<T> translator, in IntPtr state, in int idx)
+        protected abstract TValue GetValue(IntPtr state, int index);
+
+        protected abstract bool TryGetValue(IntPtr state, int index, out TValue value);
+    }
+
+    public abstract class LuaTranslator<TValue> : LuaDecoder<TValue>, ILuaTranslator<TValue>
+    {
+        public abstract void PushValue(IntPtr state, in TValue value);
+    }
+
+    public class ByteLuaTranslator : LuaTranslator<byte>
+    {
+        protected internal override LuaTypes LuaType => LuaTypes.LUA_TNUMBER;
+
+        public override void PushValue(IntPtr state, in byte value)
         {
-            if (translator.Type != LuaTypes.LUA_TNONE && LuaAPI.lua_type(state, idx) != translator.Type)
+            LuaAPI.lua_pushinteger(state, value);
+        }
+
+        protected override byte GetValue(IntPtr state, int index)
+        {
+#if LUA_NUMBER_CHECK
+            var value = LuaAPI.lua_tointeger(state, index);
+            if (value > byte.MaxValue || value < byte.MinValue)
             {
-                throw new Exception($"Get Value Type {typeof(T).FullName} Faile");
+                throw new Exception("value overflow.");
             }
-            if (!translator.TryGetValue(state, idx, out var value))
+            return (byte)value;
+#else
+            return (byte)LuaAPI.lua_tointeger(state, index);
+#endif
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out byte value)
+        {
+#if LUA_NUMBER_CHECK
+            unchecked
             {
-                throw new Exception($"Get Value Type {typeof(T).FullName} Faile");
+                var integer = LuaAPI.lua_tointeger(state, index);
+                value = (byte)integer;
+                return integer <= byte.MaxValue && integer >= byte.MinValue;
             }
-            return value;
+#else
+            value = (byte)LuaAPI.lua_tointeger(state, index);
+            return true;
+#endif
+        }
+    }
+
+    public class IntLuaTranslator : LuaTranslator<int>
+    {
+        protected internal override LuaTypes LuaType => LuaTypes.LUA_TNUMBER;
+
+        public override void PushValue(IntPtr state, in int value)
+        {
+            LuaAPI.lua_pushinteger(state, value);
+        }
+
+        protected override int GetValue(IntPtr state, int index)
+        {
+#if LUA_NUMBER_CHECK
+            var value = LuaAPI.lua_tointeger(state, index);
+            if (value > int.MaxValue || value < int.MinValue)
+            {
+                throw new Exception("value overflow.");
+            }
+            return (int)value;
+#else
+            return (int)LuaAPI.lua_tointeger(state, index)
+#endif
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out int value)
+        {
+#if LUA_NUMBER_CHECK
+            unchecked
+            {
+                var integer = LuaAPI.lua_tointeger(state, index);
+                value = (int)integer;
+                return integer <= int.MaxValue && integer >= int.MinValue;
+            }
+#else
+            value = (int)LuaAPI.lua_tointeger(state, index);
+            return true;
+#endif
+        }
+    }
+
+    public class LongLuaTranslator : LuaTranslator<long>
+    {
+        protected internal override LuaTypes LuaType => throw new NotImplementedException();
+
+        public override void PushValue(IntPtr state, in long value)
+        {
+            LuaAPI.lua_pushinteger(state, value);
+        }
+
+        protected override long GetValue(IntPtr state, int index)
+        {
+            return LuaAPI.lua_tointeger(state, index);
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out long value)
+        {
+            value = LuaAPI.lua_tointeger(state, index);
+            return true;
+        }
+    }
+
+    public class FloatLuaTranslator : LuaTranslator<float>
+    {
+        protected internal override LuaTypes LuaType => LuaTypes.LUA_TNUMBER;
+
+        public override void PushValue(IntPtr state, in float value)
+        {
+            LuaAPI.lua_pushnumber(state, value);
+        }
+
+        protected override float GetValue(IntPtr state, int index)
+        {
+#if LUA_NUMBER_CHECK
+            var value = LuaAPI.lua_tonumber(state, index);
+            if (value < float.MinValue || value > float.MaxValue)
+            {
+                throw new Exception("value overflow.");
+            }
+            return (float)value;
+#else
+            return (float)LuaAPI.lua_tonumber(state, index);
+#endif
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out float value)
+        {
+#if LUA_NUMBER_CHECK
+            unchecked
+            {
+                var number = LuaAPI.lua_tonumber(state, index);
+                value = (float)number;
+                return value >= float.MinValue && value <= float.MaxValue;
+            }
+#else
+            value = (float)LuaAPI.lua_tonumber(state, index);
+            return true;
+#endif
+        }
+    }
+
+    public class DoubleLuaTranslator : LuaTranslator<double>
+    {
+        protected internal override LuaTypes LuaType => LuaTypes.LUA_TNUMBER;
+
+        public override void PushValue(IntPtr state, in double value)
+        {
+            LuaAPI.lua_pushnumber(state, value);
+        }
+
+        protected override double GetValue(IntPtr state, int index)
+        {
+            return LuaAPI.lua_tonumber(state, index);
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out double value)
+        {
+            value = LuaAPI.lua_tonumber(state, index);
+            return true;
+        }
+    }
+
+    public class BooleanLuaTranslator : LuaTranslator<bool>
+    {
+        protected internal override LuaTypes LuaType => LuaTypes.LUA_TBOOLEAN;
+
+        public override void PushValue(IntPtr state, in bool value)
+        {
+            LuaAPI.lua_pushboolean(state, value);
+        }
+
+        protected override bool GetValue(IntPtr state, int index)
+        {
+            return LuaAPI.lua_toboolean(state, index);
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out bool value)
+        {
+            value = LuaAPI.lua_toboolean(state, index);
+            return true;
+        }
+    }
+
+    public class StringLuaTranslator : LuaTranslator<string>
+    {
+        protected internal override LuaTypes LuaType => LuaTypes.LUA_TSTRING;
+
+        public override void PushValue(IntPtr state, in string value)
+        {
+            LuaAPI.lua_pushstring(state, value);
+        }
+
+        protected override string GetValue(IntPtr state, int index)
+        {
+            return LuaAPI.lua_tostring(state, index);
+        }
+
+        protected override bool TryGetValue(IntPtr state, int index, out string value)
+        {
+            value = LuaAPI.lua_tostring(state, index);
+            return true;
         }
     }
 }
