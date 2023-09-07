@@ -111,7 +111,7 @@ namespace Lua
             }
             return (int)value;
 #else
-            return (int)LuaAPI.lua_tointeger(state, index)
+            return (int)LuaAPI.lua_tointeger(state, index);
 #endif
         }
 
