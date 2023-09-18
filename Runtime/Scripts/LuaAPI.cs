@@ -516,9 +516,9 @@ namespace Lua
         public static extern IntPtr lua_newuserdatauv(IntPtr state, int size, int nuvalue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void lua_newuserdata(IntPtr state, int size)
+        public static IntPtr lua_newuserdata(IntPtr state, int size)
         {
-            lua_newuserdatauv(state, size, 1);
+            return lua_newuserdatauv(state, size, 1);
         }
 
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
