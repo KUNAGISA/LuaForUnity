@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -206,12 +207,19 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lua_absindex(IntPtr state, int idx);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int lua_upvalueindex(int i)
+        {
+            return LuaConst.LUA_REGISTRYINDEX - i;
+        }
+
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lua_gettop(IntPtr state);
 
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_settop(IntPtr state, int idx);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_pop(IntPtr state, int n)
         {
             lua_settop(state, -n - 1);
@@ -223,17 +231,20 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_rotate(IntPtr state, int idx, int n);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_insert(IntPtr state, int idx)
         {
             lua_rotate(state, idx, 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_remove(IntPtr state, int idx)
         {
             lua_rotate(state, idx, -1);
             lua_pop(state, 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_replace(IntPtr L, int idx)
         {
             lua_copy(L, -1, idx);
@@ -264,41 +275,49 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool lua_isuserdata(IntPtr state, int idx);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_isfunction(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TFUNCTION;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_istable(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TTABLE;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_islightuserdata(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TLIGHTUSERDATA;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_isnil(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TNIL;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_isboolean(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TBOOLEAN;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_isthread(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TTHREAD;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_isnone(IntPtr state, int idx)
         {
             return lua_type(state, idx) == LuaTypes.LUA_TNONE;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_isnoneornil(IntPtr state, int idx)
         {
             return (int)lua_type(state, idx) <= 0;
@@ -313,6 +332,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern double lua_tonumberx(IntPtr state, int idx, IntPtr isnum);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double lua_tonumberx(IntPtr state, int idx, out bool isnum)
         {
             var pointer = Marshal.AllocHGlobal(Marshal.SizeOf<bool>());
@@ -322,6 +342,7 @@ namespace Lua
             return value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double lua_tonumber(IntPtr state, int idx)
         {
             return lua_tonumberx(state, idx, IntPtr.Zero);
@@ -330,6 +351,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern long lua_tointegerx(IntPtr state, int idx, IntPtr isnum);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long lua_tointegerx(IntPtr state, int idx, out bool isnum)
         {
             var pointer = Marshal.AllocHGlobal(Marshal.SizeOf<bool>());
@@ -339,6 +361,7 @@ namespace Lua
             return value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long lua_tointeger(IntPtr state, int idx)
         {
             return lua_tointegerx(state, idx, IntPtr.Zero);
@@ -350,6 +373,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr lua_tolstring(IntPtr state, int idx, out IntPtr len);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntPtr lua_tolstring(IntPtr state, int idx, out int len)
         {
             len = 0;
@@ -361,6 +385,7 @@ namespace Lua
             return str;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string lua_tostring(IntPtr state, int idx)
         {
             var str = lua_tolstring(state, idx, out IntPtr len);
@@ -403,11 +428,13 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern void lua_pushlstring(IntPtr state, byte[] str, int size);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_pushlstring(IntPtr state, byte[] str)
         {
             lua_pushlstring(state, str, str.Length);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_pushlstring(IntPtr state, string str)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(str);
@@ -433,6 +460,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_pushcclosure(IntPtr state, LuaCSFunction fn, int n);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_pushcfunction(IntPtr L, LuaCSFunction func)
         {
             lua_pushcclosure(L, func, 0);
@@ -447,6 +475,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool lua_pushthread(IntPtr state);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_register(IntPtr state, string name, LuaCSFunction func)
         {
             lua_pushcfunction(state, func);
@@ -477,6 +506,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_createtable(IntPtr state, int narr, int nrec);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_newtable(IntPtr state, int narr = 0, int nrec = 0)
         {
             lua_createtable(state, narr, nrec);
@@ -485,6 +515,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr lua_newuserdatauv(IntPtr state, int size, int nuvalue);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_newuserdata(IntPtr state, int size)
         {
             lua_newuserdatauv(state, size, 1);
@@ -496,6 +527,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern LuaTypes lua_getiuservalue(IntPtr state, int idx, int n);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaTypes lua_getuservalue(IntPtr state, int idx)
         {
             return lua_getiuservalue(state, idx, 1);
@@ -528,6 +560,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool lua_setiuservalue(IntPtr state, int idx, int n);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool lua_setuservalue(IntPtr state, int idx)
         {
             return lua_setiuservalue(state, idx, 1);
@@ -536,6 +569,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_callk(IntPtr state, int nargs, int nresults, IntPtr ctx, LuaKFunction k);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void lua_call(IntPtr state, int nargs = 0, int nresults = LuaConst.LUA_MULTRET)
         {
             lua_callk(state, nargs, nresults, IntPtr.Zero, null);
@@ -544,6 +578,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern LuaStatus lua_pcallk(IntPtr state, int nargs, int nresults, int errfunc, IntPtr ctx, LuaKFunction k);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus lua_pcall(IntPtr state, int nargs = 0, int nresults = LuaConst.LUA_MULTRET, int errfunc = 0)
         {
             return lua_pcallk(state, nargs, nresults, errfunc, IntPtr.Zero, null);
@@ -558,6 +593,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern LuaStatus lua_yieldk(IntPtr state, int nresults, IntPtr ctx, LuaKFunction k);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus lua_yield(IntPtr state, int nresults = 0)
         {
             return lua_yieldk(state, nresults, IntPtr.Zero, null);
@@ -566,6 +602,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern LuaStatus lua_resume(IntPtr state, IntPtr from, int narg, out IntPtr nresults);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus lua_resume(IntPtr state, IntPtr from, int narg, out int nresults)
         {
             nresults = 0;
@@ -619,6 +656,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_closeslot(IntPtr state, int idx);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntPtr lua_getextraspace(IntPtr state)
         {
             var ptrval = state.ToInt64();
@@ -708,6 +746,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void luaL_checkversion_(IntPtr state, double ver, int sz);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_checkversion(IntPtr state)
         {
             luaL_checkversion_(state, LuaConst.LUA_VERSION_NUM, sizeof(long) * 16 + sizeof(double));
@@ -722,6 +761,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr luaL_tolstring(IntPtr state, int idx, out IntPtr len);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string luaL_tolstring(IntPtr state, int idx)
         {
             var str = luaL_tolstring(state, idx, out var len);
@@ -737,12 +777,14 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr luaL_checklstring(IntPtr state, int arg, out IntPtr len);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string luaL_checklstring(IntPtr state, int arg)
         {
             var str = luaL_checklstring(state, arg, out var len);
             return GetString(str, len);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string luaL_checkstring(IntPtr state, int arg)
         {
             return luaL_checklstring(state, arg);
@@ -751,12 +793,14 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr luaL_optlstring(IntPtr state, int arg, string def, out IntPtr len);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string luaL_optlstring(IntPtr state, int arg, string def)
         {
             var str = luaL_optlstring(state, arg, def, out var len);
             return GetString(str, len);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string luaL_optstring(IntPtr state, int arg, string def)
         {
             return luaL_optlstring(state, arg, def);
@@ -818,6 +862,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaL_ref(IntPtr state, int t);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int luaL_ref(IntPtr state)
         {
             return luaL_ref(state, LuaConst.LUA_REGISTRYINDEX);
@@ -826,16 +871,19 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaL_unref(IntPtr state, int t, int @ref);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int luaL_unref(IntPtr state, int @ref)
         {
             return luaL_unref(state, LuaConst.LUA_REGISTRYINDEX, @ref);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_getref(IntPtr state, int t, int @ref)
         {
             lua_rawgeti(state, t, @ref);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_getref(IntPtr state, int @ref)
         {
             lua_rawgeti(state, LuaConst.LUA_REGISTRYINDEX, @ref);
@@ -844,6 +892,7 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern LuaStatus luaL_loadfilex(IntPtr state, string filename, string mode);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_loadfile(IntPtr state, string filename)
         {
             return luaL_loadfilex(state, filename, null);
@@ -852,22 +901,26 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern LuaStatus luaL_loadbufferx(IntPtr state, byte[] buff, int size, string name, string mode);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_loadbufferx(IntPtr state, byte[] buff, string name, string mode)
         {
             return luaL_loadbufferx(state, buff, buff.Length, name, mode);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_loadbuffer(IntPtr state, byte[] buff, string name)
         {
             return luaL_loadbufferx(state, buff, name, null);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_loadbuffer(IntPtr state, string buff, string name)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(buff);
             return luaL_loadbuffer(state, bytes, name);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_loadstring(IntPtr state, string s)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(s);
@@ -889,11 +942,13 @@ namespace Lua
         [DllImport(LuaDLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void luaL_requiref(IntPtr state, string modname, LuaCSFunction openf, int glb);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_newlibtable(IntPtr state, LuaLReg[] l)
         {
             lua_createtable(state, 0, l.Length - 1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_newlib(IntPtr state, LuaLReg[] l)
         {
             luaL_checkversion(state);
@@ -901,6 +956,7 @@ namespace Lua
             luaL_setfuncs(state, l, 0);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_argcheck(IntPtr state, bool cond, int arg, string extramsg)
         {
             if (!cond)
@@ -909,6 +965,7 @@ namespace Lua
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_argexpected(IntPtr state, bool cond, int arg, string tname)
         {
             if (!cond)
@@ -917,11 +974,13 @@ namespace Lua
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string luaL_typename(IntPtr state, int idx)
         {
             return lua_typename(state, lua_type(state, idx));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_dofile(IntPtr state, string filename)
         {
             var status = luaL_loadfile(state, filename);
@@ -932,6 +991,7 @@ namespace Lua
             return status;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaStatus luaL_dostring(IntPtr state, string str)
         {
             var status = luaL_loadstring(state, str);
@@ -942,11 +1002,13 @@ namespace Lua
             return status;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static LuaTypes luaL_getmetatable(IntPtr state, string name)
         {
             return lua_getfield(state, LuaConst.LUA_REGISTRYINDEX, name);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void luaL_pushfail(IntPtr state)
         {
             lua_pushnil(state);
